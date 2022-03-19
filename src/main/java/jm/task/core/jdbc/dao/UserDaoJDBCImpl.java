@@ -14,7 +14,8 @@ public class UserDaoJDBCImpl implements UserDao {
     private static String UPDATE_USER = "UPDATE users SET age = ? WHERE id = ?";
     private static String DELETE_USER = "DELETE FROM users WHERE id = ?";
 
-    public static List<User> createUsersTable(String query) {
+    
+      public static List<User> createUsersTable(String query) {
         List<User> users = new ArrayList<>();
 
         try (Connection connection = Utils.getConnection();
@@ -29,7 +30,6 @@ public class UserDaoJDBCImpl implements UserDao {
 
                 long id = 0;
                 users.add(new User(id, name, lastName, age));
-
             }
 
         } catch (SQLException e) {
@@ -68,10 +68,10 @@ public class UserDaoJDBCImpl implements UserDao {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return user;
+        return users;
     }
 
-    public static void deleteUsers(long userId) {
+    public void removeUserById(long userId) {
 
         try (Connection connection = Utils.getConnection();
              PreparedStatement preparedStatement = connection.PrepareStatement(DELETE_USER)) {
@@ -85,40 +85,36 @@ public class UserDaoJDBCImpl implements UserDao {
             e.printStackTrace();
 
             System.out.println(getUserData("SELECT * FROM users"));
-
-
         }
     }
 
-
-
-    @Override
-    public void createUsersTable() {
-
-    }
-
-    @Override
-    public void dropUsersTable() {
-
-    }
-
-    @Override
-    public void saveUser(String name, String lastName, byte age) {
-
-    }
-
-    @Override
-    public void removeUserById(long id) {
-
-    }
-
-    @Override
     public List<User> getAllUsers() {
+        List<User> list = new ArrayList<>();
+        try (Statement statement = Util.connectDB().createStatement()) {
+            ResultSet rs = statement.executeQuery("SELECT * FROM usersdb.User");
+            while (rs.next()) {
+
+                String name = rs.getString("name");
+                String lastName = rs.getString("lastName");
+                byte age = rs.getByte("age");
+
+                User user = new User('\'' + name + '\'', '\'' + lastName + '\'', age);
+                System.out.println(user.toString());
+                list.add(user);
+            }
+            return list;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
-    @Override
     public void cleanUsersTable() {
+        try (Statement statement = Util.connectDB().createStatement()) {
+            statement.executeUpdate("TRUNCATE TABLE user");
+        } catch (SQLException e) {
 
+
+        }
     }
 }
